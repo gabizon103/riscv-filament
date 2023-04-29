@@ -1,0 +1,48 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+
+// decoder for rv32i instruction set
+
+// r-type has opcode 0b0110011
+// sb-type has opcode 0b1100011
+// i-type has opcode 0b0010011 (?)
+
+comp decode<G:L-(G), ?L:1=G+1> (
+  @[G,L] instr:32
+) -> (
+  @[G,L] rs1:5,
+  @[G,L] rs2:5,
+  @[G,L] rd:5,
+  @[G,L] funct:10,
+  @[G,L] imm:12,
+  @[G,L] opcode:7
+) where L > G {
+  op_instr := new Slice[32,6,0,7]<G,L>(instr);
+  opcode = op_instr;
+
+  rtype := new decode_rtype<G,L>(instr);
+}
+
+comp decode_rtype<G:L-(G), ?L:1=G+1> (
+  @[G,L] instr:32
+) -> (
+  @[G,L] rs1:5,
+  @[G,L] rs2:5,
+  @[G,L] rd:5,
+  @[G,L] funct:10,
+  @[G,L] imm:12,
+) where L > G {
+  rd_instr := new Slice[32,11,7,5]<G,L>(instr);
+  rd = rd_instr.out;
+
+  rs1_instr := new Slice[32,19,15,5]<G,L>(instr);
+  rs1 = rs1_instr.out;
+
+  rs2_instr :=  new Slice[32,24,20,5]<G,L>(instr);
+  rs2 = rs2_instr.out;
+
+  funct3 := new Slice[32,14,12,3]<G,L>(instr);
+  funct7 := new Slice[32,31,25,7]<G,L>(instr);
+  func10 := new Concat[7,3,10]<G,L>(funct7.out,funct3.out);
+  funct = func10.out;
+}

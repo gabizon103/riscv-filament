@@ -1,0 +1,11 @@
+Some resources to look at
+
+https://gitlab.com/spade-lang/spade
+
+https://spade-lang.org/
+
+https://gitlab.com/TheZoq2/spade-v
+
+https://opencores.org/
+
+https://opencores.org/projects/open8_urisc

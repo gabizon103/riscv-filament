@@ -1,0 +1,33 @@
+Things that might be cool for Filament
+
+1. More explicit control flow.
+  This was the first thing I thought of as I was brainstorming a design
+  for an ALU that supports more operations than just add/multiply. The 
+  mux primitive is a 2:1 mux, so if I wanted to choose between any number
+  of inputs greater than 2 I would have to cascade a bunch of these. It seems
+  unwieldy to do this in a separate component [insert what that would look like]
+
+  One solution I thought of for this (and is applicable for other things,
+  probably) might be to add more specific control flow like if statements. It 
+  seems rather straightforward to compile such constructs to Calyx, but I'll
+  play around with it.
+
+  Similarly, I thought it was really cool that Spade implements pattern
+  matching. It is a bit less clear to me how this construct might get 
+  compiled to Calyx, but I'll play around with it in my head. 
+
+  These constructs are a bit "higher-level" than what Filament currently 
+  supports, but I'm interested to hear your thoughts on whether or not 
+  they have a place in a language like Filament.
+
+2. Parameterized components. 
+  Not sure if its possible (because atm I'm not sure how Filament primitives
+  are actually implemented), but it would be cool to define them as components 
+  that can be parameterized. This would make things like implementing an N:1 mux 
+  much easier.
+
+3. Slicing bits is a bit verbose.
+  It seems like overkill to have the user instantiate a component just for slicing bits?
+  I don't see a reason why Filament can't have syntax like in[3:0] and then insert a 
+  component instantiation in an early compiler pass. This would just be a bit nicer 
+  syntax. 

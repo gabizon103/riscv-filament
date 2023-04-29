@@ -1,0 +1,82 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+
+/* 
+  alu supporting some riscv ops:
+
+  add, sub,
+  slt, sltu,
+  and, or, xor,
+  sll, srl, sra,
+  cmp, cmpu
+*/
+
+comp alu<G:3> (
+  @interface[G] go:1,
+  @[G,G+3] op:4,
+  @[G,G+1] left:32,
+  @[G,G+1] right:32,
+) -> (@[G+2,G+3] out:32) {
+  add0 := new Add[32]<G>(left,right);
+  mult0 := new Mult[32]<G>(left,right);
+  and0 := new And[32]<G>(left,right);
+  or0 := new Or[32]<G>(left,right);
+  xor0 := new Xor[32]<G>(left,right);
+  mux0 := new 16to1mux[32]<G>(reg0.out,reg1.out,reg2.out,reg3.out);
+
+  reg0 := new Reg[32]<G,G+3>(add0.out);
+  reg1 := new Reg[32]<G,G+3>(and0.out);
+  reg2 := new Reg[32]<G,G+3>(or0.out);
+  reg3 := new Reg[32]<G,G+3>(xor0.out);
+}
+
+comp 16to1mux[#WIDTH]<G:L-(G), ?L:1=G+1> (
+  @[G,L] sel:4,
+  @[G,L] in0: #WIDTH,
+  @[G,L] in1: #WIDTH,
+  @[G,L] in2: #WIDTH,
+  @[G,L] in3: #WIDTH,
+  @[G,L] in4: #WIDTH,
+  @[G,L] in5: #WIDTH,
+  @[G,L] in6: #WIDTH,
+  @[G,L] in7: #WIDTH,
+  @[G,L] in8: #WIDTH,
+  @[G,L] in9: #WIDTH,
+  @[G,L] in10: #WIDTH,
+  @[G,L] in11: #WIDTH,
+  @[G,L] in12: #WIDTH,
+  @[G,L] in13: #WIDTH,
+  @[G,L] in14: #WIDTH,
+  @[G,L] in15: #WIDTH,
+) -> (
+  @[G,L] out: #WIDTH,
+) where L > G, #WIDTH > 0 {
+  sel0 := new Slice[4,0,0,1]<G,L>(sel);
+  sel1 := new Slice[4,1,1,1]<G,L>(sel);
+  sel2 := new Slice[4,2,2,1]<G,L>(sel);
+  sel3 := new Slice[4,3,3,1]<G,L>(sel);
+
+  // first layer
+  Mux0 := new Mux[#WIDTH]<G,L>(sel0.out,in1,in0);
+  Mux1 := new Mux[#WIDTH]<G,L>(sel0.out,in3,in2);
+  Mux2 := new Mux[#WIDTH]<G,L>(sel0.out,in5,in4);
+  Mux3 := new Mux[#WIDTH]<G,L>(sel0.out,in7,in6);
+  Mux4 := new Mux[#WIDTH]<G,L>(sel0.out,in9,in8);
+  Mux5 := new Mux[#WIDTH]<G,L>(sel0.out,in11,in10);
+  Mux6 := new Mux[#WIDTH]<G,L>(sel0.out,in13,in12);
+  Mux7 := new Mux[#WIDTH]<G,L>(sel0.out,in15,in14);
+
+  // second layer
+  Mux8 := new Mux[#WIDTH]<G,L>(sel1.out,Mux1.out,Mux0.out);
+  Mux9 := new Mux[#WIDTH]<G,L>(sel1.out,Mux3.out,Mux2.out);
+  Mux10 := new Mux[#WIDTH]<G,L>(sel1.out,Mux5.out,Mux4.out);
+  Mux11 := new Mux[#WIDTH]<G,L>(sel1.out,Mux7.out,Mux6.out);
+
+  // third layer
+  Mux12 := new Mux[#WIDTH]<G,L>(sel2.out,Mux9.out,Mux8.out);
+  Mux13 := new Mux[#WIDTH]<G,L>(sel2.out,Mux11.out,Mux10.out);
+
+  // last layer
+  Mux14 := new Mux[#WIDTH]<G,L>(sel3.out,in3,in2);
+  out = Mux14.out;
+}
