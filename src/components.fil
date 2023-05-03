@@ -1,0 +1,49 @@
+extern "components.sv" {
+  comp mux16to1[#WIDTH]<G:L-(G), ?L:1=G+1>(
+    @[G,L] sel:4,
+    @[G,L] in0: #WIDTH,
+    @[G,L] in1: #WIDTH,
+    @[G,L] in2: #WIDTH,
+    @[G,L] in3: #WIDTH,
+    @[G,L] in4: #WIDTH,
+    @[G,L] in5: #WIDTH,
+    @[G,L] in6: #WIDTH,
+    @[G,L] in7: #WIDTH,
+    @[G,L] in8: #WIDTH,
+    @[G,L] in9: #WIDTH,
+    @[G,L] in10: #WIDTH,
+    @[G,L] in11: #WIDTH,
+    @[G,L] in12: #WIDTH,
+    @[G,L] in13: #WIDTH,
+    @[G,L] in14: #WIDTH,
+    @[G,L] in15: #WIDTH
+  ) -> (
+    @[G,L] out: #WIDTH
+  ) where L > G, #WIDTH > 0;
+
+  comp mux8to1[#WIDTH]<G:L-(G),?L:1=G+1>(
+    @[G,L] sel:4,
+    @[G,L] in0: #WIDTH,
+    @[G,L] in1: #WIDTH,
+    @[G,L] in2: #WIDTH,
+    @[G,L] in3: #WIDTH,
+    @[G,L] in4: #WIDTH,
+    @[G,L] in5: #WIDTH,
+    @[G,L] in6: #WIDTH,
+    @[G,L] in7: #WIDTH
+  ) ->  (
+    @[G,L] out: #WIDTH
+  ) where L > G, #WIDTH > 0;
+
+  comp onehotmux[#WIDTH]<G:L-(G),?L:1=G+1>(
+    @[G,L] sel:6,
+    @[G,L] in0: #WIDTH,
+    @[G,L] in1: #WIDTH,
+    @[G,L] in2: #WIDTH,
+    @[G,L] in3: #WIDTH,
+    @[G,L] in4: #WIDTH,
+    @[G,L] in5: #WIDTH,
+  ) -> (
+    @[G,L] out: #WIDTH
+  ) where L > G, #WIDTH > 0;
+}

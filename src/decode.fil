@@ -1,5 +1,6 @@
 import "primitives/core.fil";
 import "primitives/sequential.fil";
+import "components.fil";
 
 // decoder for rv32i instruction set
 
@@ -7,42 +8,272 @@ import "primitives/sequential.fil";
 // sb-type has opcode 0b1100011
 // i-type has opcode 0b0010011 (?)
 
-comp decode<G:L-(G), ?L:1=G+1> (
-  @[G,L] instr:32
-) -> (
-  @[G,L] rs1:5,
-  @[G,L] rs2:5,
-  @[G,L] rd:5,
-  @[G,L] funct:10,
-  @[G,L] imm:12,
-  @[G,L] opcode:7
-) where L > G {
-  op_instr := new Slice[32,6,0,7]<G,L>(instr);
-  opcode = op_instr;
+// file:///C:/Users/ethan/Downloads/riscv-spec-20191213%20(1).pdf
+// based on this doc
 
-  rtype := new decode_rtype<G,L>(instr);
+comp decode<G:1> (
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20,
+  @[G, G+1] opcode:7
+) {
+  op_instr := new Slice[32,6,0,7]<G>(instr);
+  opcode = op_instr.out;
+
+  rtype := new decode_rtype<G>(instr);
+  itype := new decode_itype<G>(instr);
+  stype := new decode_stype<G>(instr);
+  btype := new decode_btype<G>(instr);
+  utype := new decode_utype<G>(instr);
+  jtype := new decode_jtype<G>(instr);
+
+  rtypeConst := new Const[7,51]<G>();
+  dummyConst := new Const[7,0]<G>();
+
+  // TODO: fix these. just putting them here for now
+  isRtypeComp := new Eq[7]<G>(op_instr.out, rtypeConst.out);
+  isItypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+  isStypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+  isBtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+  isUtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+  isJtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+
+  concat0 := new Concat[1,1,2]<G>(isRtypeComp.out, isItypeComp.out);
+  concat1 := new Concat[1,1,2]<G>(isStypeComp.out, isBtypeComp.out);
+  concat2 := new Concat[1,1,2]<G>(isUtypeComp.out, isJtypeComp.out);
+  concat3 := new Concat[2,2,4]<G>(concat0.out, concat1.out);
+
+  // should be one-hot encoding, MSB to LSB:
+  // Rtype, Itype, Stype, Btype, Utype, Jtype
+  muxsel := new Concat[4,2,6]<G>(concat3.out,concat2.out);
+
+  rs1mux := new onehotmux[5]<G>(
+    muxsel.out, jtype.rs1, utype.rs1, btype.rs1, stype.rs1, itype.rs1, rtype.rs1
+  );
+  rs1 = rs1mux.out;
+  
+  rs2mux := new onehotmux[5]<G>(
+    muxsel.out, jtype.rs2, utype.rs2, btype.rs2, stype.rs2, itype.rs2, rtype.rs2
+  );
+  rs2 = rs2mux.out;
+
+  rdmux := new onehotmux[5]<G>(
+    muxsel.out, jtype.rd, utype.rd, btype.rd, stype.rd, itype.rd, rtype.rd
+  );
+  rd = rdmux.out;
+
+  functmux := new onehotmux[10]<G>(
+    muxsel.out, jtype.funct, utype.funct, btype.funct, stype.funct, itype.funct, rtype.funct
+  );
+  funct = functmux.out;
+
+  immmux := new onehotmux[20]<G>(
+    muxsel.out, jtype.imm, utype.imm, btype.imm, stype.imm, itype.imm, rtype.imm
+  );
+  imm = immmux.out;
 }
 
-comp decode_rtype<G:L-(G), ?L:1=G+1> (
-  @[G,L] instr:32
+comp decode_rtype<G:1> (
+  @[G, G+1] instr:32
 ) -> (
-  @[G,L] rs1:5,
-  @[G,L] rs2:5,
-  @[G,L] rd:5,
-  @[G,L] funct:10,
-  @[G,L] imm:12,
-) where L > G {
-  rd_instr := new Slice[32,11,7,5]<G,L>(instr);
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20,
+) {
+  // destination register
+  rd_instr := new Slice[32,11,7,5]<G>(instr);
   rd = rd_instr.out;
 
-  rs1_instr := new Slice[32,19,15,5]<G,L>(instr);
+  // source reg 1
+  rs1_instr := new Slice[32,19,15,5]<G>(instr);
   rs1 = rs1_instr.out;
 
-  rs2_instr :=  new Slice[32,24,20,5]<G,L>(instr);
+  // source reg 2
+  rs2_instr :=  new Slice[32,24,20,5]<G>(instr);
   rs2 = rs2_instr.out;
 
-  funct3 := new Slice[32,14,12,3]<G,L>(instr);
-  funct7 := new Slice[32,31,25,7]<G,L>(instr);
-  func10 := new Concat[7,3,10]<G,L>(funct7.out,funct3.out);
+  // function
+  funct3 := new Slice[32,14,12,3]<G>(instr);
+  funct7 := new Slice[32,31,25,7]<G>(instr);
+  func10 := new Concat[7,3,10]<G>(funct7.out,funct3.out);
   funct = func10.out;
+
+  // imm is dont care
+  imm_dc := new Const[20,0]<G>();
+  imm = imm_dc.out;
+}
+
+comp decode_itype<G:1> (
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20
+) {
+  // rs2 is dont care
+  rs2_dc := new Const[5,0]<G>();
+  rs2 = rs2_dc.out;
+
+  // source reg
+  rs1_instr := new Slice[32,19,15,5]<G>(instr);
+  rs1 = rs1_instr.out;
+
+  // dest reg
+  rd_instr := new Slice[32,11,7,5]<G>(instr);
+  rd = rd_instr.out;
+
+  // funct
+  funct3 := new Slice[32,14,12,3]<G>(instr);
+  funct3extended := new ZeroExtend[3,10]<G>(funct3.out);
+  funct = funct3extended.out;
+
+  // imm
+  imm12 := new Slice[32,31,20,12]<G>(instr);
+  immextended := new ZeroExtend[12,20]<G>(imm12.out);
+  imm = immextended.out;
+}
+
+comp decode_stype<G:1>(
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20
+) {
+  // rd is dont care
+  rd_dc := new Const[5,0]<G>();
+  rd = rd_dc.out;
+
+  // rs1
+  rs1_instr := new Slice[32,19,15,5]<G>(instr);
+  rs1 = rs1_instr.out;
+
+  // rs2
+  rs2_instr := new Slice[32,24,20,5]<G>(instr);
+  rs2 = rs2_instr.out;
+
+  // imm
+  imm7 := new Slice[32,31,25,7]<G>(instr);
+  imm5 := new Slice[32,11,7,5]<G>(instr);
+  imm12 := new Concat[7,5,12]<G>(imm7.out,imm5.out);
+  immextended := new ZeroExtend[12,20]<G>(imm12.out);
+  imm = immextended.out;
+
+  // funct
+  funct3 := new Slice[32,14,12,3]<G>(instr);
+  funct3extended := new ZeroExtend[3,10]<G>(funct3.out);
+  funct = funct3extended.out;
+}
+
+comp decode_btype<G:1>(
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20
+) {
+  // source reg 2
+  rs2_instr := new Slice[32,24,20,5]<G>(instr);
+  rs2 = rs2_instr.out;
+
+  // source reg 1
+  rs1_instr := new Slice[32,19,15,5]<G>(instr);
+  rs1 = rs1_instr.out;
+
+  // funct3
+  funct3 := new Slice[32,14,12,3]<G>(instr);
+  funct3extended := new ZeroExtend[3,10]<G>(funct3.out);
+  funct = funct3extended.out;
+
+  // imm
+  imm4_1 := new Slice[32,11,8,4]<G>(instr);
+  imm11 := new Select[32,7]<G>(instr);
+  imm12 := new Select[32,31]<G>(instr);
+  imm10_5 := new Slice[32,30,25,6]<G>(instr);
+
+  imm12_11 := new Concat[1,1,2]<G>(imm12.out,imm11.out);
+  imm12_5 := new Concat[2,6,8]<G>(imm12_11.out,imm10_5.out);
+  imm12_0 := new Concat[8,4,12]<G>(imm12_5.out,imm4_1.out);
+
+  immextended := new ZeroExtend[12,20]<G>(imm12_0.out);
+  imm = immextended.out;
+}
+
+comp decode_utype<G:1>(
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20
+) {
+  // imm
+  imm31_12 := new Slice[32,31,12,20]<G>(instr);
+  imm = imm31_12.out;
+
+  // rd 
+  rd_instr := new Slice[32,11,7,5]<G>(instr);
+  rd = rd_instr.out;
+
+  // rs1 - dont care
+  rs1_dc := new Const[5,0]<G>();
+  rs1 = rs1_dc.out;
+
+  // rs2 - dont care
+  rs2_dc := new Const[5,0]<G>();
+  rs2 = rs2_dc.out;
+
+  // funct - dont care
+  funct_dc := new Const[10,0]<G>();
+  funct = funct_dc.out;
+}
+
+comp decode_jtype<G:1>(
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] funct:10,
+  @[G, G+1] imm:20
+) {
+  // imm
+  imm20 := new Select[32,31]<G>(instr);
+  imm10_1 := new Slice[32,30,21,10]<G>(instr);
+  imm11 := new Select[32,20]<G>(instr);
+  imm19_12 := new Slice[32,19,12,8]<G>(instr);
+
+  imm20_12 := new Concat[1,8,9]<G>(imm20.out,imm19_12.out);
+  imm11_1 := new Concat[1,10,11]<G>(imm11.out,imm10_1.out);
+  imm20_1 := new Concat[9,11,20]<G>(imm20_12.out,imm11_1.out);
+  imm = imm20_1.out;
+
+  // rd 
+  rd_instr := new Slice[32,11,7,5]<G>(instr);
+  rd = rd_instr.out;
+
+  // rs1 - dc
+  rs1_dc := new Const[5,0]<G>();
+  rs1 = rs1_dc.out;
+
+  // rs2 - dc
+  rs2_dc := new Const[5,0]<G>();
+  rs2 = rs2_dc.out;
+
+  // funct - dc
+  funct_dc := new Const[10,0]<G>();
+  funct = funct_dc.out;
 }

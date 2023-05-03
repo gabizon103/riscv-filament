@@ -1,0 +1,23 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+//import "alu.fil";
+import "decode.fil";
+
+comp main<G:1> (
+  @[G, G+1] instr:32
+) -> (
+  @[G, G+1] rs1:5,
+  @[G, G+1] rs2:5,
+  @[G, G+1] rd:5,
+  @[G, G+1] opcode:7,
+  @[G, G+1] imm:20,
+  @[G, G+1] funct:10
+) {
+  decoder := new decode<G>(instr);
+  rs1 = decoder.rs1;
+  rs2 = decoder.rs2;
+  rd = decoder.rd;
+  funct = decoder.funct;
+  imm = decoder.imm;
+  opcode = decoder.opcode;
+}

@@ -31,3 +31,16 @@ Things that might be cool for Filament
   I don't see a reason why Filament can't have syntax like in[3:0] and then insert a 
   component instantiation in an early compiler pass. This would just be a bit nicer 
   syntax. 
+
+4. How do you see Filament being used? 
+  Is it a language people will use to design hardware, or more just link modules together?
+  If it is the latter, it seems less necessary to add nice language features because most
+  things can just be written in externs. If it is the former, having more expressive/convenient
+  language features might be important. 
+
+5. Pictures in the language tutorial might be cool.
+  I guess it depends on the target audience, but it seems the current tutorial is geared towards
+  people who are less familiar with hardware design?  I think the first part of the tutorial
+  (designing the ALU) is pretty straightforward, but once it goes to the pipelining part it 
+  seems a little unsatisfying (is that the right word?). I think some block diagrams would 
+  bridge the gap and show how the generated hardware is actually different. 
