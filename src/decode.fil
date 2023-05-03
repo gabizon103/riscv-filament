@@ -4,9 +4,9 @@ import "components.fil";
 
 // decoder for rv32i instruction set
 
-// r-type has opcode 0b0110011
+// r-type has opcode 0b0110011 (51)
 // sb-type has opcode 0b1100011
-// i-type has opcode 0b0010011 (?)
+// i-type has opcodes: 0b1100011 (99), 0b0000011 (3), or 0b0100011 (35)
 
 // file:///C:/Users/ethan/Downloads/riscv-spec-20191213%20(1).pdf
 // based on this doc
@@ -32,11 +32,21 @@ comp decode<G:1> (
   jtype := new decode_jtype<G>(instr);
 
   rtypeConst := new Const[7,51]<G>();
+  itypeConst0 := new Const[7,3]<G>();
+  itypeConst1 := new Const[7,35]<G>();
+  itypeConst2 := new Const[7,99]<G>();
+
+  isiType0 := new Eq[7]<G>(op_instr.out,itypeConst0.out);
+  isiType1 := new Eq[7]<G>(op_instr.out,itypeConst1.out);
+  isiType2 := new Eq[7]<G>(op_instr.out,itypeConst2.out);
+
+  isiType3 := new Or[1]<G>(isiType0.out,isiType1.out);
+
   dummyConst := new Const[7,0]<G>();
 
   // TODO: fix these. just putting them here for now
   isRtypeComp := new Eq[7]<G>(op_instr.out, rtypeConst.out);
-  isItypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
+  isItypeComp := new Or[1]<G>(isiType2.out,isiType3.out);
   isStypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
   isBtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
   isUtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);

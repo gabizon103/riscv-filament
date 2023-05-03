@@ -44,3 +44,5 @@ Things that might be cool for Filament
   (designing the ALU) is pretty straightforward, but once it goes to the pipelining part it 
   seems a little unsatisfying (is that the right word?). I think some block diagrams would 
   bridge the gap and show how the generated hardware is actually different. 
+
+6. In core.fil, I think the Or header should have output width #WIDTH, not 1.
