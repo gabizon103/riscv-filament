@@ -1,0 +1,47 @@
+===============================================
+                R-TYPE INSTRUCTIONS
+===============================================
+
+The zeroeth instruction translates to:
+  add r2, r3, r4
+  
+  expected:
+  funct: 0000000000
+  rs1: 00011
+  rs2: 00100
+  rd: 00010
+  op: 0110011
+
+===============================================
+                I-TYPE INSTRUCTIONS
+===============================================
+
+The first instruction translates to:
+  lb r10, [r2+16]
+
+  expected:
+  imm: 000000010000
+  rs1: 00010
+  funct: 0000000000
+  rd: 01010
+  op: 0000011
+
+The second instruction translates to:
+  addi r31, 27
+
+  expected: 
+  imm: 000000011011
+  rs1: 11111
+  rd: 11111
+  funct: 0000000000
+  op: 0010011
+
+The third instruction translates to:
+  jalr r9, r3+40
+
+  expected:
+  imm: 000000101000
+  rs1: 00011
+  rd: 01001
+  funct: 000
+  op: 1100111
