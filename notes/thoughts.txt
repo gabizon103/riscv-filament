@@ -20,12 +20,6 @@ Things that might be cool for Filament
   supports, but I'm interested to hear your thoughts on whether or not 
   they have a place in a language like Filament.
 
-2. Parameterized components. 
-  Not sure if its possible (because atm I'm not sure how Filament primitives
-  are actually implemented), but it would be cool to define them as components 
-  that can be parameterized. This would make things like implementing an N:1 mux 
-  much easier.
-
 3. Slicing bits is a bit verbose.
   It seems like overkill to have the user instantiate a component just for slicing bits?
   I don't see a reason why Filament can't have syntax like in[3:0] and then insert a 
