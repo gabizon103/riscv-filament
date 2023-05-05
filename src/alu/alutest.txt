@@ -1,0 +1,1 @@
+Tests an R-type instruction that adds two numbers.

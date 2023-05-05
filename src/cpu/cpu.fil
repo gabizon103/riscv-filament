@@ -1,0 +1,20 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+import "../decode/decode.fil";
+import "../alu/alu.fil";
+//import "../components.fil";
+
+comp main<G:2> (
+  clk:1,
+  reset:1,
+  @[G,G+1] instr:32
+) -> (
+  @[G+1,G+2] out1:32,
+  @[G+1,G+2] out2:32
+) {
+  decoder := new decode<G>(instr);
+  rf := new regfile<G,G+2>(decoder.ld, decoder.rs1, decoder.rs2, alu.out, decoder.rd);
+  alu := new alu<G+1>(decoder.optype,decoder.funct,rf.rs1,rf.rs2);
+  out1 = rf.rs1;
+  out2 = rf.rs2;
+}

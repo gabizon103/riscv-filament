@@ -1,0 +1,16 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+import "../components.fil";
+import "alu.fil";
+
+comp main<G:1>(
+  @[G,G+1] optype:6,
+  @[G,G+1] funct:10,
+  @[G,G+1] rs1:32,
+  @[G,G+1] rs2:32
+) -> (
+  @[G,G+1] out:32
+) {
+  aluInst := new alu<G>(optype,funct,rs1,rs2);
+  out = aluInst.out;
+}

@@ -1,0 +1,38 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+import "../components.fil";
+
+/* 
+  alu supporting some riscv ops:
+
+  add, sub,
+  slt, sltu,
+  and, or, xor,
+  sll, srl, sra,
+  cmp, cmpu
+*/
+
+comp alu<G:1> (
+  @[G,G+1] optype:6,
+  @[G,G+1] funct:10,
+  @[G,G+1] rs1:32,
+  @[G,G+1] rs2:32
+) -> (@[G,G+1] out:32) {
+  z0 := new Const[32,0]<G>();
+  isRtypeConst := new Const[6,32]<G>();
+  isAddConst := new Const[10,0]<G>();
+
+  add0 := new Add[32]<G>(rs1,rs2);
+  and0 := new And[32]<G>(rs1,rs2);
+  or0 := new Or[32]<G>(rs1,rs2);
+  xor0 := new Xor[32]<G>(rs1,rs2);
+
+  checkRtype := new Eq[6]<G>(optype,isRtypeConst.out); // input from decoder will be 0b100000
+  checkAdd := new Eq[10]<G>(funct,isAddConst.out);     // for ADD, funct is 0b0000000
+
+  pickAdder := new And[1]<G>(checkRtype.out,checkAdd.out);
+  pickAdderExt := new ZeroExtend[1,4]<G>(pickAdder.out);
+
+  outmux := new mux8to1[32]<G>(pickAdderExt.out,and0.out,add0.out,or0.out,xor0.out,z0.out,z0.out,z0.out,z0.out);
+  out = outmux.out;
+}

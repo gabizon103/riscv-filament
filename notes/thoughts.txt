@@ -40,16 +40,18 @@ Things that might be cool for Filament
 
 5. Pictures in the language tutorial might be cool.
   I guess it depends on the target audience, but it seems the current tutorial is geared towards
-  people who are less familiar with hardware design?  I think the first part of the tutorial
+  people who are less familiar with hardware design? I think the first part of the tutorial
   (designing the ALU) is pretty straightforward, but once it goes to the pipelining part it 
   seems a little unsatisfying (is that the right word?). I think some block diagrams would 
   bridge the gap and show how the generated hardware is actually different. 
 
 6. In core.fil, I think the Or header should have output width #WIDTH, not 1.
 
-7. Side note: writing in Filament sometimes feels like I'm fighting with the compiler, but I kind of like it.
-  It reminds me of my experience learning OCaml. It was a pain to get everything to typecheck
-  and for the program to actually compile, but once I did, it was usually correct. I think this is a really
-  powerful thing in hardware design. It's pretty easy to get things to compile in Verilog, but things 
-  usually aren't correct and debugging is a pain. I think Filament applies a really interesting
-  paradigm to hardware design.
+7. Side note: writing in Filament sometimes feels like I'm fighting with the compiler, but I kind of like it. 
+  It is a pain to get everything to typecheck and for the program to actually compile, but once it does, 
+  it is usually correct. I think this is a really powerful thing in hardware design. It's pretty easy 
+  to get things to compile in Verilog, but things usually aren't correct and debugging is a pain. I think 
+  Filament applies this to hardware design nicely.
+
+8. How do clk and reset get connected to modules? It doesn't like when I add them as inputs for module 
+  instantiations.

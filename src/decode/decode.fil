@@ -1,6 +1,6 @@
 import "primitives/core.fil";
 import "primitives/sequential.fil";
-import "components.fil";
+import "../components.fil";
 
 // decoder for rv32i instruction set
 
@@ -14,15 +14,16 @@ import "components.fil";
 comp decode<G:1> (
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20,
-  @[G, G+1] opcode:7
+  @[G, G+1] optype:6
 ) {
   op_instr := new Slice[32,6,0,7]<G>(instr);
-  opcode = op_instr.out;
+  //opcode = op_instr.out;
 
   rtype := new decode_rtype<G>(instr);
   itype := new decode_itype<G>(instr);
@@ -69,6 +70,12 @@ comp decode<G:1> (
   // should be one-hot encoding, MSB to LSB:
   // Rtype, Itype, Stype, Btype, Utype, Jtype
   muxsel := new Concat[4,2,6]<G>(concat3.out,concat2.out);
+  optype = muxsel.out;
+
+  ldmux := new onehotmux[1]<G>(
+    muxsel.out,jtype.ld, utype.ld, btype.ld, stype.ld, itype.ld, rtype.ld
+  );
+  ld = ldmux.out;
 
   rs1mux := new onehotmux[5]<G>(
     muxsel.out, jtype.rs1, utype.rs1, btype.rs1, stype.rs1, itype.rs1, rtype.rs1
@@ -99,12 +106,17 @@ comp decode<G:1> (
 comp decode_rtype<G:1> (
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20,
 ) {
+  // ld = 1
+  c1 := new Const[1,1]<G>();
+  ld = c1.out;
+
   // destination register
   rd_instr := new Slice[32,11,7,5]<G>(instr);
   rd = rd_instr.out;
@@ -131,12 +143,17 @@ comp decode_rtype<G:1> (
 comp decode_itype<G:1> (
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20
 ) {
+  // ld = 0 (for now)
+  c0 := new Const[1,0]<G>();
+  ld = c0.out;
+
   // rs2 is dont care
   rs2_dc := new Const[5,0]<G>();
   rs2 = rs2_dc.out;
@@ -163,12 +180,17 @@ comp decode_itype<G:1> (
 comp decode_stype<G:1>(
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20
 ) {
+  // ld = 0 (for now)
+  c0 := new Const[1,0]<G>();
+  ld = c0.out;
+
   // rd is dont care
   rd_dc := new Const[5,0]<G>();
   rd = rd_dc.out;
@@ -197,12 +219,18 @@ comp decode_stype<G:1>(
 comp decode_btype<G:1>(
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20
 ) {
+
+  // ld = 0 (for now)
+  c0 := new Const[1,0]<G>();
+  ld = c0.out;
+
   // source reg 2
   rs2_instr := new Slice[32,24,20,5]<G>(instr);
   rs2 = rs2_instr.out;
@@ -233,12 +261,18 @@ comp decode_btype<G:1>(
 comp decode_utype<G:1>(
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20
 ) {
+
+  // ld = 0 (for now)
+  c0 := new Const[1,0]<G>();
+  ld = c0.out;
+
   // imm
   imm31_12 := new Slice[32,31,12,20]<G>(instr);
   imm = imm31_12.out;
@@ -263,12 +297,18 @@ comp decode_utype<G:1>(
 comp decode_jtype<G:1>(
   @[G, G+1] instr:32
 ) -> (
+  @[G, G+1] ld:1,
   @[G, G+1] rs1:5,
   @[G, G+1] rs2:5,
   @[G, G+1] rd:5,
   @[G, G+1] funct:10,
   @[G, G+1] imm:20
 ) {
+
+  // ld = 0 (for now)
+  c0 := new Const[1,0]<G>();
+  ld = c0.out;
+
   // imm
   imm20 := new Select[32,31]<G>(instr);
   imm10_1 := new Slice[32,30,21,10]<G>(instr);
