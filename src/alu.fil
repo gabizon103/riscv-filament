@@ -19,11 +19,9 @@ comp alu<G:3> (
   @[G,G+1] right:32,
 ) -> (@[G+2,G+3] out:32) {
   add0 := new Add[32]<G>(left,right);
-  mult0 := new Mult[32]<G>(left,right);
   and0 := new And[32]<G>(left,right);
   or0 := new Or[32]<G>(left,right);
   xor0 := new Xor[32]<G>(left,right);
-  mux0 := new 16to1mux[32]<G>(reg0.out,reg1.out,reg2.out,reg3.out);
 
   reg0 := new Reg[32]<G,G+3>(add0.out);
   reg1 := new Reg[32]<G,G+3>(and0.out);

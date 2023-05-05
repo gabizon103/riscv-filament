@@ -4,7 +4,7 @@ import "components.fil";
 
 // decoder for rv32i instruction set
 
-// r-type has opcode 0b0110011 (51)
+// r-type has opcode 0b0110011 (51) or 0b0010011
 // sb-type has opcode 0b1100011
 // i-type has opcodes: 0b1100011 (103), 0b0000011 (3), or 0b0010011 (19)
 
@@ -31,7 +31,16 @@ comp decode<G:1> (
   utype := new decode_utype<G>(instr);
   jtype := new decode_jtype<G>(instr);
 
-  rtypeConst := new Const[7,51]<G>();
+  rtypeConst0 := new Const[7,51]<G>();
+  rtypeConst1 := new Const[7,19]<G>();
+
+  // complicated because some r-type and i-type 
+  // instructions share the opcode 0010011 - 
+  // if this is the opcode and funct3 is 001 or
+  // 101, then it is rtype. otherwise itype
+  rtypeFunct0 := new Const[3,1]<G>();
+  rtypeFunct1 := new Const[3,5]<G>();
+
   itypeConst0 := new Const[7,3]<G>();
   itypeConst1 := new Const[7,19]<G>();
   itypeConst2 := new Const[7,103]<G>();
@@ -45,8 +54,8 @@ comp decode<G:1> (
   dummyConst := new Const[7,0]<G>();
 
   // TODO: fix these. just putting them here for now
-  isRtypeComp := new Eq[7]<G>(op_instr.out, rtypeConst.out);
-  isItypeComp := new Or[1]<G>(isiType2.out,isiType3.out);
+  isRtypeComp := new isrtype<G>(op_instr.out,rtype.funct);
+  isItypeComp := new Not[1]<G>(isRtypeComp.out);
   isStypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
   isBtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);
   isUtypeComp := new Eq[7]<G>(op_instr.out, dummyConst.out);

@@ -46,4 +46,24 @@ extern "components.sv" {
   ) -> (
     @[G,L] out: #WIDTH
   ) where L > G, #WIDTH > 0;
+
+  comp isrtype<G:L-(G),?L:1=G+1>(
+    @[G,L] opcode:7,
+    @[G,L] funct:10
+  ) -> (
+    @[G,L] out:1
+  ) where L > G;
+
+  comp regfile<G: L-(G+1), L: 1>(
+    clk:1,
+    reset:1,
+    @[G,G+1] ld:1,
+    @[G,G+1] r_in1:5,
+    @[G,G+1] r_in2:5,
+    @[G,G+1] data_in:32,
+    @[G,G+1] r_dest:5
+  ) -> (
+    @[G+1,L] rs1:32,
+    @[G+1,L] rs2:32
+  ) where L > G+1;
 }

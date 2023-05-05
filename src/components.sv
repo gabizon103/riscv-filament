@@ -96,3 +96,38 @@ module onehotmux #(
     endcase
   end
 endmodule
+
+module isrtype (
+  input wire logic [6:0] opcode,
+  input wire logic [9:0] funct,
+  output wire logic out
+);
+  assign out = (opcode == 7'b0110011) | 
+  ((opcode == 0010011) & (funct[2:0] == 3'd1 | funct[2:0] == 3'd5));
+endmodule
+
+module regfile (
+  input wire clk,
+  input wire reset,
+  input wire logic ld,
+  input wire logic [4:0] r_in1,
+  input wire logic [4:0] r_in2,
+  input wire logic [31:0] data_in,
+  input wire logic [4:0] r_dest,
+  output reg [31:0] rs1,
+  output reg [31:0] rs2
+);
+  reg [31:0] rf [31:0];
+  integer i;
+  assign rs1 = rf[r_in1];
+  assign rs2 = rf[r_in2];
+  always_ff @(posedge clk) begin 
+    if (reset) begin 
+      for(i = 0; i < 32; i = i+1)
+        rf[i] <= 32'd0;
+    end else if (ld) begin
+      rf[r_dest] <= data_in;
+    end else begin
+    end
+  end
+endmodule

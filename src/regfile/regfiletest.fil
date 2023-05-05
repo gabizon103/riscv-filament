@@ -1,0 +1,20 @@
+import "primitives/core.fil";
+import "primitives/sequential.fil";
+import "../components.fil";
+
+comp main <G:1> (
+  clk:1,
+  reset:1,
+  @[G,G+1] ld:1,
+  @[G,G+1] r_in1:5,
+  @[G,G+1] r_in2:5,
+  @[G,G+1] data_in:32,
+  @[G,G+1] r_dest:5
+) -> (
+  @[G+1,G+2] rs1:32,
+  @[G+1,G+2] rs2:32
+) {
+  rf := new regfile<G,G+2>(ld,r_in1,r_in2,data_in,r_dest);
+  rs1 = rf.rs1;
+  rs2 = rf.rs2;
+}
